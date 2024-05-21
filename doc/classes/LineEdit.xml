@@ -137,6 +137,7 @@
 			<param index="0" name="text" type="String" />
 			<description>
 				Inserts [param text] at the caret. If the resulting value is longer than [member max_length], nothing happens.
+				If [method _validate_text_change] is implemented, [param text] will not be inserted if it returns [false].
 			</description>
 		</method>
 		<method name="is_menu_visible" qualifiers="const">
@@ -178,6 +179,24 @@
 			<return type="void" />
 			<description>
 				Selects the whole [String].
+			</description>
+		</method>
+		<method name="_validate_text_change" qualifiers="virtual">
+			<return type="bool" />
+			<param index="0" name="input_text" type="String"  />
+			<description>
+				Allows and prevents [method insert_text_at_caret] from updating [member text].
+				Returning [code]true[/code] will allow the text change.
+				Text changes are allowed by default when _validate_text_change is not implemented.
+				[codeblocks]
+				[gdscript]
+				_validate_text_change(input_text) -> bool:
+					var new_text = text.insert(get_caret_column(), input_text)
+					if new_text.contains("forbidden_word"):
+					    return false
+					return true
+				[/gdscript]
+				[/codeblocks]
 			</description>
 		</method>
 	</methods>

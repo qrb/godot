@@ -217,6 +217,7 @@ private:
 	void _fit_to_width();
 	void _text_changed();
 	void _emit_text_change();
+	String _apply_text_at_caret(String p_text);
 
 	void shift_selection_check_pre(bool);
 	void shift_selection_check_post(bool);
@@ -255,6 +256,8 @@ protected:
 
 	virtual void unhandled_key_input(const Ref<InputEvent> &p_event) override;
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
+
+	GDVIRTUAL1R(bool, _validate_text_change, String)
 
 public:
 	void set_horizontal_alignment(HorizontalAlignment p_alignment);

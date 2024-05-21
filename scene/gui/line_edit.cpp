@@ -1770,14 +1770,7 @@ float LineEdit::get_scroll_offset() const {
 }
 
 void LineEdit::insert_text_at_caret(String p_text) {
-	if (max_length > 0) {
-		// Truncate text to append to fit in max_length, if needed.
-		int available_chars = max_length - text.length();
-		if (p_text.length() > available_chars) {
-			emit_signal(SNAME("text_change_rejected"), p_text.substr(available_chars));
-			p_text = p_text.substr(0, available_chars);
-		}
-	}
+	p_text = _apply_text_at_caret(p_text);
 	String pre = text.substr(0, caret_column);
 	String post = text.substr(caret_column, text.length() - caret_column);
 	text = pre + p_text + post;
@@ -1791,6 +1784,28 @@ void LineEdit::insert_text_at_caret(String p_text) {
 	if (!ime_text.is_empty()) {
 		_shape();
 	}
+}
+
+/*
+ * Applies validation to text being inserted at caret
+ * return String - the text that can be inserted at caret
+ */
+String LineEdit::_apply_text_at_caret(String p_text) {
+	bool valid = true;
+	if (GDVIRTUAL_CALL(_validate_text_change, p_text, valid)) {
+		if (!valid) {
+			emit_signal(SNAME("text_change_rejected"), p_text);
+			return "";
+		}
+	} else if (max_length > 0) {
+		// Truncate text to append to fit in max_length, if needed.
+		int available_chars = max_length - text.length();
+		if (p_text.length() > available_chars) {
+			emit_signal(SNAME("text_change_rejected"), p_text.substr(available_chars));
+			return p_text.substr(0, available_chars);
+		}
+	}
+	return p_text;
 }
 
 void LineEdit::clear_internal() {
@@ -2715,6 +2730,8 @@ void LineEdit::_bind_methods() {
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_ICON, LineEdit, clear_icon, "clear");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, clear_button_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, LineEdit, clear_button_color_pressed);
+
+	GDVIRTUAL_BIND(_validate_text_change, "text");
 }
 
 LineEdit::LineEdit(const String &p_placeholder) {
